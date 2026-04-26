@@ -1,4 +1,4 @@
-# VitalSync
+# VitalSync-> SAKHI
 
 VitalSync is a menstrual health tracking web app with account auth, cycle tracking, diary logging, PCOD risk assessment, export/delete controls, and an AI help assistant with a safe fallback mode.
 
