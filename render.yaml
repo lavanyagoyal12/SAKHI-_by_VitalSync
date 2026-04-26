@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: vitalsync
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MONGODB_URI
+        sync: false
+      - key: SUPPORT_EMAIL
+        sync: false
+      - key: APP_BASE_URL
+        sync: false

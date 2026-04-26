@@ -1,0 +1,1850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SAKHI</title>
+  <meta name="description" content="SAKHI is a premium femtech health companion for menstrual cycle tracking, PCOD risk assessment, and personalized wellness insights." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            rose: { DEFAULT: '#e8607a', light: '#f1899b', dark: '#c94a62' },
+            lavender: { DEFAULT: '#c084fc', light: '#d4a5fd', dark: '#a855f7' },
+            blush: { DEFAULT: '#fce4ea', light: '#fef0f3', dark: '#f8c8d4' },
+            plum: { DEFAULT: '#4a1942', light: '#6b2d63', dark: '#2e0f29' },
+          },
+          fontFamily: {
+            display: ['Playfair Display', 'serif'],
+            body: ['DM Sans', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'DM Sans', sans-serif; background: #fef7f8; color: #4a1942; transition: background-color 0.25s ease, color 0.25s ease; }
+    .glass { background: rgba(255,255,255,0.65); backdrop-filter: blur(16px); border: 1px solid rgba(232,96,122,0.12); transition: background-color 0.25s ease, border-color 0.25s ease; }
+    .glass-strong { background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); border: 1px solid rgba(232,96,122,0.15); transition: background-color 0.25s ease, border-color 0.25s ease; }
+    @keyframes pulse-ring { 0% { transform: scale(0.9); opacity: 1; } 50% { transform: scale(1.15); opacity: 0.4; } 100% { transform: scale(0.9); opacity: 1; } }
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes typing { 0%,60%,100% { opacity: 0.3; } 30% { opacity: 1; } }
+    .animate-pulse-ring { animation: pulse-ring 2s ease-in-out infinite; }
+    .animate-float { animation: float 3s ease-in-out infinite; }
+    .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+    .animate-shimmer { background: linear-gradient(90deg, transparent 0%, rgba(232,96,122,0.08) 50%, transparent 100%); background-size: 200% 100%; animation: shimmer 2s infinite; }
+    .animate-spin-slow { animation: spin-slow 3s linear infinite; }
+    .dot-typing span:nth-child(1) { animation: typing 1.4s infinite 0s; }
+    .dot-typing span:nth-child(2) { animation: typing 1.4s infinite 0.2s; }
+    .dot-typing span:nth-child(3) { animation: typing 1.4s infinite 0.4s; }
+    .noise-bg { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.015'/%3E%3C/svg%3E"); }
+    .scrollbar-thin::-webkit-scrollbar { width: 5px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(232,96,122,0.2); border-radius: 10px; }
+    .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: rgba(232,96,122,0.4); }
+    input:focus, textarea:focus, select:focus { outline: none; box-shadow: 0 0 0 2px rgba(232,96,122,0.3); }
+    .gauge-bg { background: conic-gradient(from 210deg, #e8607a 0%, #c084fc 40%, #e2e8f0 40%, #e2e8f0 100%); }
+    body.dark-theme { background: #0f1722; color: #f6dce4; }
+    body.dark-theme .glass { background: rgba(20, 31, 45, 0.78); border-color: rgba(232, 96, 122, 0.2); }
+    body.dark-theme .glass-strong { background: rgba(16, 24, 36, 0.92); border-color: rgba(232, 96, 122, 0.24); }
+    body.dark-theme .text-plum { color: #f9e8ed !important; }
+    body.dark-theme .text-plum\/70 { color: rgba(249, 232, 237, 0.8) !important; }
+    body.dark-theme .text-plum\/60 { color: rgba(249, 232, 237, 0.72) !important; }
+    body.dark-theme .text-plum\/50 { color: rgba(249, 232, 237, 0.6) !important; }
+    body.dark-theme .text-plum\/40 { color: rgba(249, 232, 237, 0.48) !important; }
+    body.dark-theme .bg-blush,
+    body.dark-theme .bg-blush\/30,
+    body.dark-theme .bg-blush\/50,
+    body.dark-theme .hover\:bg-blush:hover,
+    body.dark-theme .hover\:bg-blush\/30:hover,
+    body.dark-theme .hover\:bg-blush\/50:hover,
+    body.dark-theme .hover\:bg-blush\/20:hover { background-color: rgba(255, 255, 255, 0.06) !important; }
+    body.dark-theme .bg-white,
+    body.dark-theme .bg-white\/70,
+    body.dark-theme .bg-gray-50,
+    body.dark-theme .bg-gray-200 { background-color: rgba(255, 255, 255, 0.08) !important; }
+    body.dark-theme .border-rose\/10,
+    body.dark-theme .border-rose\/20,
+    body.dark-theme .border-rose\/5 { border-color: rgba(232, 96, 122, 0.24) !important; }
+    body.dark-theme .bg-red-50 { background-color: rgba(127, 29, 29, 0.22) !important; }
+    body.dark-theme .bg-red-100 { background-color: rgba(127, 29, 29, 0.28) !important; }
+    body.dark-theme .border-red-200 { border-color: rgba(248, 113, 113, 0.22) !important; }
+    body.dark-theme .bg-amber-50 { background-color: rgba(120, 53, 15, 0.24) !important; }
+    body.dark-theme .border-amber-200 { border-color: rgba(251, 191, 36, 0.2) !important; }
+    body.dark-theme .bg-orange-50 { background-color: rgba(124, 45, 18, 0.24) !important; }
+    body.dark-theme .border-orange-200 { border-color: rgba(251, 146, 60, 0.22) !important; }
+    body.dark-theme .bg-blue-50 { background-color: rgba(30, 58, 138, 0.22) !important; }
+    body.dark-theme .border-blue-200 { border-color: rgba(96, 165, 250, 0.2) !important; }
+    body.dark-theme .bg-purple-50 { background-color: rgba(88, 28, 135, 0.24) !important; }
+    body.dark-theme .border-purple-200 { border-color: rgba(196, 181, 253, 0.2) !important; }
+    body.dark-theme input,
+    body.dark-theme textarea,
+    body.dark-theme select { color: #f9e8ed; }
+    body.dark-theme input::placeholder,
+    body.dark-theme textarea::placeholder { color: rgba(249, 232, 237, 0.4); }
+    body.dark-theme .noise-bg { background-image:
+      radial-gradient(circle at top, rgba(232, 96, 122, 0.14), transparent 35%),
+      radial-gradient(circle at bottom right, rgba(192, 132, 252, 0.12), transparent 30%),
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"); }
+    body.dark-theme .app-shell { background: linear-gradient(180deg, rgba(9, 14, 22, 0.96) 0%, rgba(15, 23, 34, 0.98) 100%); min-height: 100vh; }
+    body.dark-theme .auth-shell { background: linear-gradient(135deg, #0f1722 0%, #172033 40%, #231827 100%) !important; }
+  </style>
+</head>
+<body class="noise-bg">
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback, useMemo, createContext, useContext } = React;
+
+    // ─── CONTEXT ──────────────────────────────────────────
+    const AppContext = createContext();
+    const useApp = () => useContext(AppContext);
+
+    // ─── STORAGE HELPERS ──────────────────────────────────
+    const storage = {
+      get: (key, fallback = null) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; } },
+      set: (key, val) => { localStorage.setItem(key, JSON.stringify(val)); },
+      remove: (key) => { localStorage.removeItem(key); },
+    };
+
+    const api = {
+      clearLegacyAuth: () => localStorage.removeItem('vitalsync_token'),
+      request: async (path, options = {}) => {
+        const response = await fetch(path, {
+          credentials: 'same-origin',
+          ...options,
+          headers: {
+            'Content-Type': 'application/json',
+            ...(options.headers || {}),
+          },
+        });
+        if (response.status === 204) return null;
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'Request failed.');
+        return data;
+      },
+      applyData: (data, setters) => {
+        setters.setUser(data.user);
+        setters.setPeriods(data.periods || []);
+        setters.setDiary(data.diary || []);
+        setters.setPcodResult(data.pcod || null);
+        setters.setChat(data.chat || []);
+      },
+    };
+
+    // ─── DATE HELPERS ─────────────────────────────────────
+    const DAY_MS = 86400000;
+    const fmt = (d) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const fmtShort = (d) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const isSameDay = (a, b) => new Date(a).toDateString() === new Date(b).toDateString();
+    const daysBetween = (a, b) => Math.round((new Date(b) - new Date(a)) / DAY_MS);
+    const addDays = (d, n) => new Date(new Date(d).getTime() + n * DAY_MS).toISOString().split('T')[0];
+    const today = () => new Date().toISOString().split('T')[0];
+
+    // ─── AI LOGIC ─────────────────────────────────────────
+    function predictNextPeriod(lastPeriodDate, cycleHistory) {
+      if (!cycleHistory || cycleHistory.length === 0) return addDays(lastPeriodDate, 28);
+      const avg = cycleHistory.reduce((a, b) => a + b, 0) / cycleHistory.length;
+      return addDays(lastPeriodDate, Math.round(avg));
+    }
+
+    function getCyclePhase(dayOfCycle, cycleLength = 28) {
+      const ratio = dayOfCycle / cycleLength;
+      if (ratio <= 0.18) return { name: 'Menstrual', emoji: '🩸', color: '#e8607a', tip: 'Rest and hydrate. Iron-rich foods help replenish blood loss.' };
+      if (ratio <= 0.46) return { name: 'Follicular', emoji: '🌱', color: '#4ade80', tip: 'Energy is rising! Great time for new projects and social activities.' };
+      if (ratio <= 0.57) return { name: 'Ovulation', emoji: '✨', color: '#c084fc', tip: 'Peak energy and confidence. Ideal for important conversations and workouts.' };
+      return { name: 'Luteal', emoji: '🌙', color: '#f59e0b', tip: 'Progesterone rises. Prioritize comfort foods and gentle movement.' };
+    }
+
+    function calcPCODRisk(answers) {
+      if (!answers || answers.length === 0) return 0;
+      let irregularity = 0, symptoms = 0, lifestyle = 0, family = 0;
+      // Questions 0-4: irregularity
+      for (let i = 0; i < 5 && i < answers.length; i++) irregularity += (answers[i] || 0);
+      // Questions 5-9: symptoms
+      for (let i = 5; i < 10 && i < answers.length; i++) symptoms += (answers[i] || 0);
+      // Questions 10-14: lifestyle
+      for (let i = 10; i < 15 && i < answers.length; i++) lifestyle += (answers[i] || 0);
+      // Questions 15-19: family history
+      for (let i = 15; i < 20 && i < answers.length; i++) family += (answers[i] || 0);
+      const maxPer = 5 * 4; // 5 questions, max 4 each
+      const score = ((irregularity / maxPer) * 30) + ((symptoms / maxPer) * 25) + ((lifestyle / maxPer) * 25) + ((family / maxPer) * 20);
+      return Math.min(100, Math.round(score));
+    }
+
+    // ─── PCOD QUESTIONS ───────────────────────────────────
+    const PCOD_QUESTIONS = [
+      { q: "How regular is your menstrual cycle?", opts: ["Very regular (25-30 days)", "Slightly irregular (±5 days)", "Often irregular (±10 days)", "Very irregular / missed periods", "No period for 3+ months"] },
+      { q: "How long does your period typically last?", opts: ["3-5 days", "5-7 days", "Less than 3 days", "More than 7 days", "Varies significantly"] },
+      { q: "How heavy is your menstrual flow?", opts: ["Light to moderate", "Moderate", "Heavy", "Very heavy with clots", "Extremely light or absent"] },
+      { q: "Do you experience spotting between periods?", opts: ["Never", "Rarely", "Sometimes", "Often", "Very frequently"] },
+      { q: "Have you experienced missed periods (not pregnant)?", opts: ["Never", "Once in past year", "2-3 times in past year", "4-6 times in past year", "Most months"] },
+      { q: "Do you have persistent acne (especially jawline/chin)?", opts: ["No acne", "Mild, occasional", "Moderate", "Severe", "Cystic acne"] },
+      { q: "Have you noticed unusual hair growth (face, chest, back)?", opts: ["None", "Minimal", "Noticeable", "Significant", "Severe"] },
+      { q: "Are you experiencing hair thinning or hair loss?", opts: ["No", "Slight thinning", "Moderate thinning", "Significant loss", "Severe loss"] },
+      { q: "Do you experience skin darkening (neck, armpits, groin)?", opts: ["No", "Slightly", "Moderately", "Noticeably", "Significantly"] },
+      { q: "Do you experience severe mood swings or anxiety?", opts: ["Rarely", "Sometimes", "Often", "Very often", "Constantly"] },
+      { q: "Have you experienced unexplained weight gain?", opts: ["No", "1-3 kg", "3-5 kg", "5-10 kg", "More than 10 kg"] },
+      { q: "How would you rate your stress levels?", opts: ["Low", "Moderate", "High", "Very High", "Extremely High"] },
+      { q: "How many hours of sleep do you get?", opts: ["7-9 hours", "6-7 hours", "5-6 hours", "4-5 hours", "Less than 4 hours"] },
+      { q: "How often do you exercise?", opts: ["5+ days/week", "3-4 days/week", "1-2 days/week", "Occasionally", "Never"] },
+      { q: "How would you describe your diet?", opts: ["Balanced & nutritious", "Mostly healthy", "Average", "Often junk food", "Mostly processed food"] },
+      { q: "Does anyone in your family have PCOS/PCOD?", opts: ["No", "Distant relative", "Aunt/cousin", "Mother/sister", "Multiple family members"] },
+      { q: "Is there diabetes in your family?", opts: ["No", "Distant relative", "Grandparent", "Parent", "Multiple members"] },
+      { q: "Is there thyroid disease in your family?", opts: ["No", "Distant relative", "Aunt/cousin", "Parent/sibling", "Multiple members"] },
+      { q: "Has anyone in your family had fertility issues?", opts: ["No", "Distant relative", "Aunt/cousin", "Mother/sister", "Multiple members"] },
+      { q: "Any family history of hormonal disorders?", opts: ["None known", "Possibly", "One relative", "Parent/sibling", "Multiple members"] },
+    ];
+
+    const SYMPTOMS_LIST = ['Cramps', 'Bloating', 'Headache', 'Acne', 'Fatigue', 'Breast Tenderness', 'Nausea', 'Mood Swings', 'Back Pain', 'Insomnia', 'Cravings', 'Dizziness'];
+    const MOODS = [
+      { emoji: '😊', label: 'Happy' },
+      { emoji: '😐', label: 'Neutral' },
+      { emoji: '😢', label: 'Sad' },
+      { emoji: '😤', label: 'Irritated' },
+      { emoji: '😰', label: 'Anxious' },
+    ];
+
+    // ─── AUTH SCREEN ──────────────────────────────────────
+    function AuthScreen({ onAuth, darkMode }) {
+      const [isLogin, setIsLogin] = useState(true);
+      const [form, setForm] = useState({ name: '', age: '', weight: '', lastPeriod: '', cycleLength: '28', conditions: '', email: '', password: '' });
+      const [error, setError] = useState('');
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        try {
+          if (isLogin) {
+            const result = await api.request('/api/auth/login', {
+              method: 'POST',
+              body: JSON.stringify({ email: form.email, password: form.password }),
+            });
+            onAuth(result.data);
+          } else {
+            if (!form.name || !form.email || !form.password || !form.lastPeriod) { setError('Please fill all required fields.'); return; }
+            const result = await api.request('/api/auth/register', {
+              method: 'POST',
+              body: JSON.stringify({
+                ...form,
+                age: Number(form.age) || null,
+                weight: Number(form.weight) || null,
+                cycleLength: Number(form.cycleLength) || 28,
+                conditions: form.conditions.split(',').map(s => s.trim()).filter(Boolean),
+              }),
+            });
+            onAuth(result.data);
+          }
+        } catch (err) {
+          setError(err.message || 'Something went wrong.');
+        }
+      };
+
+      const inputClass = "w-full px-4 py-3 rounded-xl bg-white/70 border border-rose/20 font-body text-sm text-plum placeholder:text-plum/40 transition-all duration-200 hover:border-rose/40 focus:border-rose";
+
+      return (
+        <div className={`min-h-screen flex items-center justify-center p-4 ${darkMode ? 'auth-shell' : ''}`} style={{ background: darkMode ? 'linear-gradient(135deg, #0f1722 0%, #172033 40%, #231827 100%)' : 'linear-gradient(135deg, #fef7f8 0%, #fce4ea 30%, #f3e8ff 70%, #fef7f8 100%)' }}>
+          <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+            <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(232,96,122,0.08) 0%, transparent 70%)' }}></div>
+            <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,132,252,0.08) 0%, transparent 70%)' }}></div>
+          </div>
+          <div className="relative glass-strong rounded-3xl shadow-xl max-w-md w-full p-8 animate-fade-in">
+            <div className="text-center mb-8">
+              <div
+                className="inline-flex items-center justify-center w-24 h-24 rounded-[2rem] mb-5 p-2 shadow-lg shadow-rose/20 ring-1 ring-white/70"
+                style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,237,242,0.92))' }}
+              >
+                <img
+                  src="/image.png"
+                  alt="SAKHI logo"
+                  className="h-full w-full rounded-[2rem] object-cover object-top"
+                />
+              </div>
+              <h1 className="font-display text-3xl font-bold text-plum">SAKHI</h1>
+              <p className="text-plum/60 text-sm mt-1 font-body">Because your cycle deserves a bestfriend</p>
+            </div>
+            <div className="flex mb-6 bg-blush rounded-xl p-1">
+              <button onClick={() => { setIsLogin(true); setError(''); }} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${isLogin ? 'bg-white shadow-sm text-rose' : 'text-plum/50 hover:text-plum/70'}`}>Login</button>
+              <button onClick={() => { setIsLogin(false); setError(''); }} className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${!isLogin ? 'bg-white shadow-sm text-rose' : 'text-plum/50 hover:text-plum/70'}`}>Sign Up</button>
+            </div>
+            {error && <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">{error}</div>}
+            <form onSubmit={handleSubmit} className="space-y-3">
+              {!isLogin && (
+                <>
+                  <input className={inputClass} placeholder="Full Name *" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+                  <div className="grid grid-cols-2 gap-3">
+                    <input className={inputClass} placeholder="Age" type="number" value={form.age} onChange={e => setForm({...form, age: e.target.value})} />
+                    <input className={inputClass} placeholder="Weight (kg)" type="number" value={form.weight} onChange={e => setForm({...form, weight: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="text-xs text-plum/60 mb-1 block ml-1">Last Period Start Date *</label>
+                    <input className={inputClass} type="date" value={form.lastPeriod} onChange={e => setForm({...form, lastPeriod: e.target.value})} />
+                  </div>
+                  <input className={inputClass} placeholder="Average Cycle Length (days)" type="number" value={form.cycleLength} onChange={e => setForm({...form, cycleLength: e.target.value})} />
+                  <input className={inputClass} placeholder="Known conditions (PCOS, thyroid, etc.)" value={form.conditions} onChange={e => setForm({...form, conditions: e.target.value})} />
+                </>
+              )}
+              <input className={inputClass} placeholder="Email *" type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
+              <input className={inputClass} placeholder="Password *" type="password" value={form.password} onChange={e => setForm({...form, password: e.target.value})} />
+              <button type="submit" className="w-full py-3.5 rounded-xl font-semibold text-white text-sm transition-all duration-300 hover:shadow-lg hover:scale-[1.01] active:scale-[0.99]" style={{ background: 'linear-gradient(135deg, #e8607a, #c084fc)' }}>
+                {isLogin ? 'Login' : 'Create Account'}
+              </button>
+            </form>
+            <div className="mt-5 flex items-center justify-center gap-4 text-xs text-plum/50">
+              <a href="/privacy" className="hover:text-rose transition-all">Privacy</a>
+              <a href="/terms" className="hover:text-rose transition-all">Terms</a>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── SIDEBAR ──────────────────────────────────────────
+    function Sidebar({ currentPage, setPage, user, onLogout }) {
+      const navItems = [
+        { 
+          id: 'dashboard', 
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          ), 
+          label: 'Dashboard' 
+        },
+        { 
+          id: 'tracker', 
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          ), 
+          label: 'Period Tracker' 
+        },
+        { 
+          id: 'pcod', 
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          ), 
+          label: 'PCOD Check' 
+        },
+        { 
+          id: 'diary', 
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+            </svg>
+          ), 
+          label: 'Daily Diary' 
+        },
+        { 
+          id: 'padscan', 
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3"/>
+            </svg>
+          ), 
+          label: 'Pad Scan' 
+        },
+        { 
+          id: 'chat', 
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+          ), 
+          label: 'AI Chat' 
+        },
+        { 
+          id: 'insights', 
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          ), 
+          label: 'Insights' 
+        },
+        { 
+          id: 'diet', 
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/>
+            </svg>
+          ), 
+          label: 'Diet & Lifestyle' 
+        },
+        { 
+          id: 'settings', 
+          icon: (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          ), 
+          label: 'Settings' 
+        },
+      ];
+      return (
+        <aside className="fixed left-0 top-0 h-screen w-60 glass-strong border-r border-rose/10 flex flex-col z-40">
+          <div className="p-5 border-b border-rose/10">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center"  style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,237,242,0.92))' }}>
+                <img
+                  src="/image.png"
+                  alt="SAKHI logo"
+                  className="h-full w-full rounded-[1.5rem] object-cover object-top"
+                />
+              </div>
+              <div>
+                <h2 className="font-display text-lg font-bold text-plum leading-tight">SAKHI</h2>
+                <p className="text-[10px] text-plum/40 font-body">Health Companion</p>
+              </div>
+            </div>
+          </div>
+          <nav className="flex-1 py-3 px-3 space-y-0.5 overflow-y-auto scrollbar-thin">
+            {navItems.map(item => (
+              <button key={item.id} onClick={() => setPage(item.id)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${currentPage === item.id ? 'bg-gradient-to-r from-rose/15 to-lavender/10 text-rose shadow-sm' : 'text-plum/60 hover:text-plum hover:bg-blush/50'}`}>
+                <span className="w-5 h-5 flex items-center justify-center flex-shrink-0">{item.icon}</span>
+                <span>{item.label}</span>
+              </button>
+            ))}
+          </nav>
+          <div className="p-4 border-t border-rose/10">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: 'linear-gradient(135deg, #e8607a, #c084fc)' }}>
+                {(user?.name || 'U')[0].toUpperCase()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-plum truncate">{user?.name}</p>
+                <p className="text-[10px] text-plum/40 truncate">{user?.email}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 mb-3 text-[10px] text-plum/40">
+              <a href="/privacy" className="hover:text-rose transition-all">Privacy</a>
+              <a href="/terms" className="hover:text-rose transition-all">Terms</a>
+            </div>
+            <button onClick={onLogout} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-plum/50 hover:text-rose hover:bg-rose/5 transition-all">
+              <span>🚪</span> Logout
+            </button>
+          </div>
+        </aside>
+      );
+    }
+
+    // ─── TOP BAR ──────────────────────────────────────────
+    function TopBar({ title, notifications, setPage }) {
+      const [showNoti, setShowNoti] = useState(false);
+      const unread = notifications.filter(n => !n.read).length;
+      return (
+        <header className="sticky top-0 z-30 glass-strong border-b border-rose/10">
+          <div className="flex items-center justify-between h-16 px-6">
+            <h1 className="font-display text-xl font-semibold text-plum">{title}</h1>
+            <div className="relative">
+              <button onClick={() => setShowNoti(!showNoti)} className="relative w-10 h-10 rounded-xl flex items-center justify-center hover:bg-blush/50 transition-all" id="notifications-bell">
+                <span className="text-lg">🔔</span>
+                {unread > 0 && <span className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-rose text-white text-[10px] font-bold flex items-center justify-center">{unread}</span>}
+              </button>
+              {showNoti && (
+                <div className="absolute right-0 top-12 w-80 glass-strong rounded-2xl shadow-2xl border border-rose/10 overflow-hidden animate-fade-in">
+                  <div className="p-4 border-b border-rose/10">
+                    <h3 className="font-display font-semibold text-plum text-sm">Notifications</h3>
+                  </div>
+                  <div className="max-h-64 overflow-y-auto scrollbar-thin">
+                    {notifications.length === 0 ? (
+                      <p className="p-4 text-sm text-plum/40 text-center">No notifications</p>
+                    ) : notifications.slice(0, 5).map((n, i) => (
+                      <div key={i} className={`p-3 border-b border-rose/5 ${!n.read ? 'bg-blush/30' : ''}`}>
+                        <div className="flex items-start gap-2">
+                          <span className="text-sm mt-0.5">{n.icon}</span>
+                          <div>
+                            <p className="text-xs font-medium text-plum">{n.title}</p>
+                            <p className="text-[10px] text-plum/50 mt-0.5">{n.message}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <button onClick={() => { setPage('notifications'); setShowNoti(false); }} className="w-full p-3 text-xs font-semibold text-rose hover:bg-blush/30 transition-all">View All</button>
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
+      );
+    }
+
+    // ─── DASHBOARD ────────────────────────────────────────
+    function Dashboard({ user, setPage }) {
+      const { periods, diary, pcodResult, cycleLength, lastPeriodDate, cycleDay, cyclePhase, nextPeriod, daysUntilPeriod } = useApp();
+      const todayDiary = diary.find(d => d.date === today());
+      const riskScore = pcodResult ? calcPCODRisk(pcodResult.answers) : 0;
+      const riskLevel = riskScore < 30 ? 'Low' : riskScore < 60 ? 'Medium' : 'High';
+      const riskColor = riskScore < 30 ? '#4ade80' : riskScore < 60 ? '#f59e0b' : '#ef4444';
+
+      return (
+        <div className="space-y-6 animate-fade-in">
+          {/* Welcome */}
+          <div className="rounded-2xl p-6 text-white relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #e8607a 0%, #c084fc 50%, #4a1942 100%)' }}>
+            <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, white, transparent)' }}></div>
+            <h2 className="font-display text-2xl font-bold">Welcome back, {user.name?.split(' ')[0]} 💜</h2>
+            <p className="text-white/70 text-sm mt-1">Here's your health snapshot for today</p>
+          </div>
+
+          {/* Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Next Period Countdown */}
+            <div className="glass rounded-2xl p-5 hover:shadow-lg transition-all duration-300 group">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-semibold text-plum/60 uppercase tracking-wider">Next Period</h3>
+                <span className="text-lg">📅</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="relative w-20 h-20 flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full border-4 border-rose/20"></div>
+                  <div className="absolute inset-0 rounded-full border-4 border-rose/20 animate-pulse-ring"></div>
+                  <span className="text-2xl font-bold text-plum">{Math.max(0, daysUntilPeriod)}</span>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-plum">{daysUntilPeriod > 0 ? `${daysUntilPeriod} days away` : daysUntilPeriod === 0 ? 'Due today!' : `${Math.abs(daysUntilPeriod)} days late`}</p>
+                  <p className="text-xs text-plum/50 mt-1">Expected: {fmtShort(nextPeriod)}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Current Cycle Day */}
+            <div className="glass rounded-2xl p-5 hover:shadow-lg transition-all duration-300">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-semibold text-plum/60 uppercase tracking-wider">Cycle Day</h3>
+                <span className="text-lg">{cyclePhase.emoji}</span>
+              </div>
+              <p className="text-2xl font-bold text-plum">Day {cycleDay} <span className="text-sm font-normal text-plum/50">of {cycleLength}</span></p>
+              <div className="mt-2 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cyclePhase.color }}></div>
+                <p className="text-sm font-medium" style={{ color: cyclePhase.color }}>{cyclePhase.name} Phase</p>
+              </div>
+              <div className="mt-3 w-full bg-blush rounded-full h-2">
+                <div className="h-2 rounded-full transition-all duration-500" style={{ width: `${(cycleDay / cycleLength) * 100}%`, background: `linear-gradient(90deg, ${cyclePhase.color}, #c084fc)` }}></div>
+              </div>
+            </div>
+
+            {/* PCOD Risk Meter */}
+            <div className="glass rounded-2xl p-5 hover:shadow-lg transition-all duration-300">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-semibold text-plum/60 uppercase tracking-wider">PCOD Risk</h3>
+                <span className="text-lg">🧬</span>
+              </div>
+              {pcodResult ? (
+                <div className="flex items-center gap-4">
+                  <div className="relative w-20 h-20">
+                    <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#fce4ea" strokeWidth="8" />
+                      <circle cx="50" cy="50" r="40" fill="none" stroke={riskColor} strokeWidth="8" strokeDasharray={`${riskScore * 2.51} 251`} strokeLinecap="round" />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-lg font-bold text-plum">{riskScore}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: riskColor }}></div>
+                      <p className="text-sm font-semibold" style={{ color: riskColor }}>{riskLevel} Risk</p>
+                    </div>
+                    <p className="text-xs text-plum/50 mt-1">Based on your assessment</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-2">
+                  <p className="text-sm text-plum/50">Not assessed yet</p>
+                  <button onClick={() => setPage('pcod')} className="mt-2 text-xs font-semibold text-rose hover:underline">Take Assessment →</button>
+                </div>
+              )}
+            </div>
+
+            {/* Today's Summary */}
+            <div className="glass rounded-2xl p-5 hover:shadow-lg transition-all duration-300">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-semibold text-plum/60 uppercase tracking-wider">Today's Summary</h3>
+                <span className="text-lg">📋</span>
+              </div>
+              {todayDiary ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">{MOODS[todayDiary.mood]?.emoji || '😐'}</span>
+                    <span className="text-sm font-medium text-plum">{MOODS[todayDiary.mood]?.label || 'Neutral'}</span>
+                  </div>
+                  {todayDiary.symptoms?.length > 0 && <p className="text-xs text-plum/60">Top: {todayDiary.symptoms[0]}</p>}
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-plum/50">Energy:</span>
+                    {[1,2,3,4,5].map(s => <span key={s} className={`text-sm ${s <= (todayDiary.energy || 0) ? 'text-amber-400' : 'text-gray-200'}`}>★</span>)}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-2">
+                  <p className="text-sm text-plum/50">No entry today</p>
+                  <button onClick={() => setPage('diary')} className="mt-2 text-xs font-semibold text-rose hover:underline">Log Now →</button>
+                </div>
+              )}
+            </div>
+
+            {/* Cycle Phase Banner */}
+            <div className="glass rounded-2xl p-5 hover:shadow-lg transition-all duration-300 md:col-span-2">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: cyclePhase.color + '20' }}>
+                  <span className="text-xl">{cyclePhase.emoji}</span>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-plum">{cyclePhase.name} Phase</h3>
+                  <p className="text-xs text-plum/50">Day {cycleDay} of your cycle</p>
+                </div>
+              </div>
+              <p className="text-sm text-plum/70 mt-2 leading-relaxed">💡 {cyclePhase.tip}</p>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="glass rounded-2xl p-5">
+            <h3 className="text-xs font-semibold text-plum/60 uppercase tracking-wider mb-4">Quick Actions</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { icon: '📓', label: 'Log Symptoms', page: 'diary' },
+                { icon: '🩸', label: 'Log Period', page: 'tracker' },
+                { icon: '📷', label: 'Pad Scan', page: 'padscan' },
+                { icon: '🤖', label: 'Open Chat', page: 'chat' },
+              ].map(a => (
+                <button key={a.page} onClick={() => setPage(a.page)} className="flex items-center gap-2 p-3 rounded-xl bg-blush/50 hover:bg-blush transition-all duration-200 group">
+                  <span className="text-lg group-hover:scale-110 transition-transform">{a.icon}</span>
+                  <span className="text-xs font-semibold text-plum/70">{a.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── PERIOD TRACKER ───────────────────────────────────
+    function PeriodTracker() {
+      const { periods, setPeriods, user, cycleLength, lastPeriodDate } = useApp();
+      const [currentMonth, setCurrentMonth] = useState(new Date());
+      const [showLog, setShowLog] = useState(false);
+      const [logDate, setLogDate] = useState(today());
+      const [logFlow, setLogFlow] = useState('medium');
+
+      const year = currentMonth.getFullYear();
+      const month = currentMonth.getMonth();
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      // Compute cycle history
+      const sortedPeriods = [...periods].sort((a, b) => new Date(a.date) - new Date(b.date));
+      const cycleHistory = [];
+      for (let i = 1; i < sortedPeriods.length; i++) {
+        const diff = daysBetween(sortedPeriods[i - 1].date, sortedPeriods[i].date);
+        if (diff > 15 && diff < 60) cycleHistory.push(diff);
+      }
+      const avgCycle = cycleHistory.length > 0 ? Math.round(cycleHistory.reduce((a, b) => a + b, 0) / cycleHistory.length) : cycleLength;
+      const longestCycle = cycleHistory.length > 0 ? Math.max(...cycleHistory) : cycleLength;
+      const shortestCycle = cycleHistory.length > 0 ? Math.min(...cycleHistory) : cycleLength;
+      const irregular = longestCycle - shortestCycle > 7;
+
+      // Predict next 3 cycles
+      const predictions = [];
+      let predBase = lastPeriodDate;
+      for (let i = 0; i < 3; i++) {
+        const next = predictNextPeriod(predBase, cycleHistory.length > 0 ? cycleHistory : [cycleLength]);
+        predictions.push(next);
+        predBase = next;
+      }
+
+      const isPeriodDay = (dateStr) => periods.some(p => p.date === dateStr);
+      const isPredicted = (dateStr) => predictions.some(p => {
+        const d = daysBetween(p, dateStr);
+        return d >= 0 && d < 5;
+      });
+      const isOvulation = (dateStr) => {
+        const d = daysBetween(lastPeriodDate, dateStr);
+        const ovDay = Math.round(avgCycle * 0.5);
+        return d >= ovDay - 2 && d <= ovDay + 1;
+      };
+
+      const handleLog = async () => {
+        const newPeriods = [...periods, { date: logDate, flow: logFlow, logged: new Date().toISOString() }];
+        setPeriods(newPeriods);
+        try {
+          const result = await api.request('/api/periods', {
+            method: 'POST',
+            body: JSON.stringify({ date: logDate, flow: logFlow }),
+          });
+          setPeriods(result.data.periods || newPeriods);
+        } catch (err) {
+          console.error(err);
+        }
+        setShowLog(false);
+      };
+
+      return (
+        <div className="space-y-6 animate-fade-in">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-display text-xl font-bold text-plum">Period Tracker</h2>
+              <p className="text-xs text-plum/50 mt-1">Track, predict, and understand your cycle</p>
+            </div>
+            <button onClick={() => setShowLog(true)} className="px-4 py-2 rounded-xl text-white text-sm font-semibold transition-all hover:shadow-lg hover:scale-[1.02]" style={{ background: 'linear-gradient(135deg, #e8607a, #c084fc)' }}>
+              + Log Period
+            </button>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="glass rounded-xl p-4 text-center">
+              <p className="text-2xl font-bold text-plum">{avgCycle}</p>
+              <p className="text-[10px] text-plum/50 mt-1">Avg Cycle Length</p>
+            </div>
+            <div className="glass rounded-xl p-4 text-center">
+              <p className="text-2xl font-bold text-plum">{longestCycle}</p>
+              <p className="text-[10px] text-plum/50 mt-1">Longest Cycle</p>
+            </div>
+            <div className="glass rounded-xl p-4 text-center">
+              <p className="text-2xl font-bold text-plum">{shortestCycle}</p>
+              <p className="text-[10px] text-plum/50 mt-1">Shortest Cycle</p>
+            </div>
+            <div className="glass rounded-xl p-4 text-center">
+              <div className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold ${irregular ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
+                {irregular ? '⚠️ Irregular' : '✅ Regular'}
+              </div>
+              <p className="text-[10px] text-plum/50 mt-2">Cycle Status</p>
+            </div>
+          </div>
+
+          {/* Calendar */}
+          <div className="glass rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <button onClick={() => setCurrentMonth(new Date(year, month - 1))} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-blush transition-all text-plum/60">‹</button>
+              <h3 className="font-display font-semibold text-plum">{currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</h3>
+              <button onClick={() => setCurrentMonth(new Date(year, month + 1))} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-blush transition-all text-plum/60">›</button>
+            </div>
+            <div className="grid grid-cols-7 gap-1 text-center mb-2">
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+                <div key={d} className="text-[10px] font-semibold text-plum/40 py-1">{d}</div>
+              ))}
+            </div>
+            <div className="grid grid-cols-7 gap-1 text-center">
+              {Array.from({ length: firstDay }).map((_, i) => <div key={`e${i}`}></div>)}
+              {Array.from({ length: daysInMonth }).map((_, i) => {
+                const day = i + 1;
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const isPeriod = isPeriodDay(dateStr);
+                const isPred = isPredicted(dateStr);
+                const isOv = isOvulation(dateStr);
+                const isToday = dateStr === today();
+                return (
+                  <div key={day} className={`relative w-full aspect-square flex items-center justify-center rounded-lg text-xs font-medium transition-all cursor-default
+                    ${isToday ? 'ring-2 ring-rose/50' : ''}
+                    ${isPeriod ? 'bg-rose text-white' : isPred ? 'bg-rose/15 text-rose' : isOv ? 'bg-lavender/20 text-lavender-dark' : 'text-plum/60 hover:bg-blush/50'}
+                  `}>
+                    {day}
+                    {isOv && !isPeriod && <div className="absolute bottom-0.5 w-1 h-1 rounded-full bg-lavender"></div>}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex items-center gap-4 mt-4 justify-center">
+              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-rose"></div><span className="text-[10px] text-plum/50">Period</span></div>
+              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-rose/15 border border-rose/30"></div><span className="text-[10px] text-plum/50">Predicted</span></div>
+              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-lavender/20 border border-lavender/30"></div><span className="text-[10px] text-plum/50">Ovulation</span></div>
+            </div>
+          </div>
+
+          {/* Predictions */}
+          <div className="glass rounded-2xl p-5">
+            <h3 className="text-xs font-semibold text-plum/60 uppercase tracking-wider mb-3">Predicted Next Cycles</h3>
+            <div className="space-y-2">
+              {predictions.map((p, i) => (
+                <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-blush/30">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">📅</span>
+                    <span className="text-sm font-medium text-plum">Cycle {i + 1}</span>
+                  </div>
+                  <span className="text-sm text-plum/60">{fmt(p)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Log Modal */}
+          {showLog && (
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowLog(false)}>
+              <div className="glass-strong rounded-2xl p-6 max-w-sm w-full animate-fade-in" onClick={e => e.stopPropagation()}>
+                <h3 className="font-display font-semibold text-plum mb-4">Log Period</h3>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs text-plum/60 mb-1 block">Date</label>
+                    <input type="date" value={logDate} onChange={e => setLogDate(e.target.value)} className="w-full px-3 py-2 rounded-xl bg-blush/50 border border-rose/20 text-sm text-plum" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-plum/60 mb-1 block">Flow Intensity</label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {['light', 'medium', 'heavy', 'spotting'].map(f => (
+                        <button key={f} onClick={() => setLogFlow(f)} className={`py-2 rounded-lg text-xs font-medium transition-all ${logFlow === f ? 'bg-rose text-white' : 'bg-blush/50 text-plum/60'}`}>
+                          {f.charAt(0).toUpperCase() + f.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <button onClick={handleLog} className="w-full py-3 rounded-xl text-white text-sm font-semibold transition-all hover:shadow-lg" style={{ background: 'linear-gradient(135deg, #e8607a, #c084fc)' }}>Save</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ─── PCOD CHECK ───────────────────────────────────────
+    function PCODCheck() {
+      const { pcodResult, setPcodResult } = useApp();
+      const [step, setStep] = useState(pcodResult ? -1 : 0);
+      const [answers, setAnswers] = useState(pcodResult?.answers || []);
+
+      const handleAnswer = async (val) => {
+        const newAnswers = [...answers];
+        newAnswers[step] = val;
+        setAnswers(newAnswers);
+        if (step < PCOD_QUESTIONS.length - 1) {
+          setStep(step + 1);
+        } else {
+          const result = { answers: newAnswers, score: calcPCODRisk(newAnswers), date: new Date().toISOString() };
+          setPcodResult(result);
+          try {
+            const saved = await api.request('/api/pcod', {
+              method: 'POST',
+              body: JSON.stringify(result),
+            });
+            setPcodResult(saved.data.pcod || result);
+          } catch (err) {
+            console.error(err);
+          }
+          setStep(-1);
+        }
+      };
+
+      const score = pcodResult ? calcPCODRisk(pcodResult.answers) : 0;
+      const riskLevel = score < 30 ? 'Low' : score < 60 ? 'Medium' : 'High';
+      const riskColor = score < 30 ? '#4ade80' : score < 60 ? '#f59e0b' : '#ef4444';
+
+      const recommendations = {
+        Low: ['Maintain your healthy lifestyle and regular exercise routine.', 'Continue monitoring your cycle for any changes.', 'Schedule annual check-ups with your gynecologist.'],
+        Medium: ['Consider consulting an endocrinologist for hormonal evaluation.', 'Incorporate anti-inflammatory foods (turmeric, green leafy vegetables).', 'Aim for 30 minutes of moderate exercise daily.'],
+        High: ['Please consult a healthcare professional for a thorough evaluation.', 'Consider getting an ultrasound and hormonal blood tests.', 'Reduce refined sugar and processed carbohydrates in your diet.'],
+      };
+
+      if (step === -1 && pcodResult) {
+        return (
+          <div className="space-y-6 animate-fade-in">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="font-display text-xl font-bold text-plum">PCOD Risk Assessment</h2>
+                <p className="text-xs text-plum/50 mt-1">Your latest assessment results</p>
+              </div>
+              <button onClick={() => { setStep(0); setAnswers([]); }} className="px-4 py-2 rounded-xl bg-blush text-rose text-sm font-semibold hover:bg-blush-dark transition-all">
+                Retake
+              </button>
+            </div>
+            <div className="glass rounded-2xl p-8 text-center">
+              <div className="relative w-40 h-40 mx-auto mb-6">
+                <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                  <circle cx="50" cy="50" r="42" fill="none" stroke="#fce4ea" strokeWidth="6" />
+                  <circle cx="50" cy="50" r="42" fill="none" stroke={riskColor} strokeWidth="6" strokeDasharray={`${score * 2.64} 264`} strokeLinecap="round" className="transition-all duration-1000" />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-3xl font-bold text-plum">{score}</span>
+                  <span className="text-xs text-plum/50">/100</span>
+                </div>
+              </div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full" style={{ backgroundColor: riskColor + '15' }}>
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: riskColor }}></div>
+                <span className="text-sm font-semibold" style={{ color: riskColor }}>{riskLevel} Risk</span>
+              </div>
+              <p className="text-xs text-plum/50 mt-3">Assessed on {fmt(pcodResult.date)}</p>
+            </div>
+            <div className="glass rounded-2xl p-5">
+              <h3 className="text-xs font-semibold text-plum/60 uppercase tracking-wider mb-3">Personalized Recommendations</h3>
+              <div className="space-y-3">
+                {recommendations[riskLevel].map((r, i) => (
+                  <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-blush/30">
+                    <span className="text-sm mt-0.5">💡</span>
+                    <p className="text-sm text-plum/70">{r}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="space-y-6 animate-fade-in max-w-2xl mx-auto">
+          <div>
+            <h2 className="font-display text-xl font-bold text-plum">PCOD Risk Assessment</h2>
+            <p className="text-xs text-plum/50 mt-1">Answer 20 questions to evaluate your risk</p>
+          </div>
+          {/* Progress */}
+          <div className="glass rounded-xl p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-plum/60">Question {step + 1} of {PCOD_QUESTIONS.length}</span>
+              <span className="text-xs text-plum/40">{Math.round(((step + 1) / PCOD_QUESTIONS.length) * 100)}%</span>
+            </div>
+            <div className="w-full bg-blush rounded-full h-2">
+              <div className="h-2 rounded-full transition-all duration-500" style={{ width: `${((step + 1) / PCOD_QUESTIONS.length) * 100}%`, background: 'linear-gradient(90deg, #e8607a, #c084fc)' }}></div>
+            </div>
+          </div>
+          {/* Question */}
+          <div className="glass rounded-2xl p-6 animate-fade-in" key={step}>
+            <h3 className="font-display text-lg font-semibold text-plum mb-5">{PCOD_QUESTIONS[step].q}</h3>
+            <div className="space-y-2">
+              {PCOD_QUESTIONS[step].opts.map((opt, i) => (
+                <button key={i} onClick={() => handleAnswer(i)} className="w-full text-left p-4 rounded-xl border border-rose/10 hover:border-rose/30 hover:bg-blush/30 transition-all duration-200 text-sm text-plum/70 hover:text-plum">
+                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blush text-rose text-xs font-semibold mr-3">{String.fromCharCode(65 + i)}</span>
+                  {opt}
+                </button>
+              ))}
+            </div>
+          </div>
+          {step > 0 && (
+            <button onClick={() => setStep(step - 1)} className="text-sm text-plum/50 hover:text-plum transition-all">← Previous Question</button>
+          )}
+        </div>
+      );
+    }
+
+    // ─── DAILY DIARY ──────────────────────────────────────
+    function DailyDiary() {
+      const { diary, setDiary } = useApp();
+      const [selectedMood, setSelectedMood] = useState(null);
+      const [selectedSymptoms, setSelectedSymptoms] = useState([]);
+      const [energy, setEnergy] = useState(3);
+      const [notes, setNotes] = useState('');
+
+      const todayEntry = diary.find(d => d.date === today());
+
+      useEffect(() => {
+        if (todayEntry) {
+          setSelectedMood(todayEntry.mood);
+          setSelectedSymptoms(todayEntry.symptoms || []);
+          setEnergy(todayEntry.energy || 3);
+          setNotes(todayEntry.notes || '');
+        }
+      }, []);
+
+      const handleSave = async () => {
+        const entry = { date: today(), mood: selectedMood, symptoms: selectedSymptoms, energy, notes, updatedAt: new Date().toISOString() };
+        const newDiary = diary.filter(d => d.date !== today());
+        newDiary.push(entry);
+        setDiary(newDiary);
+        try {
+          const result = await api.request('/api/diary/today', {
+            method: 'PUT',
+            body: JSON.stringify(entry),
+          });
+          setDiary(result.data.diary || newDiary);
+        } catch (err) {
+          console.error(err);
+        }
+      };
+
+      const toggleSymptom = (s) => {
+        setSelectedSymptoms(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
+      };
+
+      // Last 7 days
+      const last7 = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = addDays(today(), -i);
+        const entry = diary.find(e => e.date === d);
+        last7.push({ date: d, entry });
+      }
+
+      // Pattern detection
+      const thisWeekEntries = diary.filter(d => daysBetween(d.date, today()) >= 0 && daysBetween(d.date, today()) < 7);
+      const symptomCounts = {};
+      thisWeekEntries.forEach(e => { (e.symptoms || []).forEach(s => { symptomCounts[s] = (symptomCounts[s] || 0) + 1; }); });
+      const patterns = Object.entries(symptomCounts).filter(([_, c]) => c >= 3).map(([s, c]) => `You've logged ${s.toLowerCase()} ${c} days this week`);
+
+      return (
+        <div className="space-y-6 animate-fade-in">
+          <h2 className="font-display text-xl font-bold text-plum">Daily Diary</h2>
+
+          {/* Today's Log */}
+          <div className="glass rounded-2xl p-5">
+            <h3 className="text-xs font-semibold text-plum/60 uppercase tracking-wider mb-4">Today's Entry — {fmt(today())}</h3>
+
+            {/* Mood */}
+            <div className="mb-5">
+              <label className="text-sm font-semibold text-plum mb-2 block">How are you feeling?</label>
+              <div className="flex gap-3">
+                {MOODS.map((m, i) => (
+                  <button key={i} onClick={() => setSelectedMood(i)} className={`flex flex-col items-center gap-1 p-3 rounded-xl transition-all duration-200 ${selectedMood === i ? 'bg-rose/10 ring-2 ring-rose/30 scale-105' : 'hover:bg-blush/50'}`}>
+                    <span className="text-2xl">{m.emoji}</span>
+                    <span className="text-[10px] text-plum/60">{m.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Symptoms */}
+            <div className="mb-5">
+              <label className="text-sm font-semibold text-plum mb-2 block">Symptoms</label>
+              <div className="flex flex-wrap gap-2">
+                {SYMPTOMS_LIST.map(s => (
+                  <button key={s} onClick={() => toggleSymptom(s)} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${selectedSymptoms.includes(s) ? 'bg-rose text-white' : 'bg-blush text-plum/60 hover:bg-blush-dark'}`}>
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Energy */}
+            <div className="mb-5">
+              <label className="text-sm font-semibold text-plum mb-2 block">Energy Level</label>
+              <div className="flex gap-1">
+                {[1,2,3,4,5].map(s => (
+                  <button key={s} onClick={() => setEnergy(s)} className={`text-2xl transition-all duration-200 hover:scale-110 ${s <= energy ? 'text-amber-400' : 'text-gray-200'}`}>★</button>
+                ))}
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div className="mb-5">
+              <label className="text-sm font-semibold text-plum mb-2 block">Notes</label>
+              <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="How was your day?" className="w-full px-4 py-3 rounded-xl bg-blush/30 border border-rose/10 text-sm text-plum resize-none h-24 placeholder:text-plum/30" />
+            </div>
+
+            <button onClick={handleSave} className="px-6 py-3 rounded-xl text-white text-sm font-semibold transition-all hover:shadow-lg" style={{ background: 'linear-gradient(135deg, #e8607a, #c084fc)' }}>
+              {todayEntry ? 'Update Entry' : 'Save Entry'}
+            </button>
+          </div>
+
+          {/* Patterns */}
+          {patterns.length > 0 && (
+            <div className="glass rounded-2xl p-5">
+              <h3 className="text-xs font-semibold text-plum/60 uppercase tracking-wider mb-3">🔍 Patterns Detected</h3>
+              {patterns.map((p, i) => (
+                <div key={i} className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 mb-2">
+                  <span className="text-sm">⚡</span>
+                  <p className="text-sm text-amber-700">{p}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Timeline */}
+          <div className="glass rounded-2xl p-5">
+            <h3 className="text-xs font-semibold text-plum/60 uppercase tracking-wider mb-4">Last 7 Days</h3>
+            <div className="grid grid-cols-7 gap-2">
+              {last7.map(({ date, entry }) => (
+                <div key={date} className={`text-center p-2 rounded-xl ${date === today() ? 'ring-2 ring-rose/30' : ''} ${entry ? 'bg-blush/30' : 'bg-gray-50'}`}>
+                  <p className="text-[10px] text-plum/40">{new Date(date).toLocaleDateString('en-US', { weekday: 'short' })}</p>
+                  <p className="text-lg my-1">{entry ? MOODS[entry.mood]?.emoji || '📝' : '—'}</p>
+                  <p className="text-[10px] text-plum/50">{new Date(date).getDate()}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── PAD SCAN ─────────────────────────────────────────
+    function PadScan() {
+      const [image, setImage] = useState(null);
+      const [analyzing, setAnalyzing] = useState(false);
+      const [result, setResult] = useState(null);
+
+      const handleUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            setImage(ev.target.result);
+            setResult(null);
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+
+      const analyze = () => {
+        setAnalyzing(true);
+        setTimeout(() => {
+          const results = [
+            { type: 'Normal Flow', color: '#4ade80', icon: '✅', insights: ['Flow appears within normal range for this cycle day.', 'Color indicates healthy shedding of uterine lining.', 'No unusual clotting observed.'], flag: false },
+            { type: 'Heavy Flow', color: '#f59e0b', icon: '⚠️', insights: ['Flow appears heavier than typical.', 'Consider tracking iron intake — heavy flow can lead to anemia.', 'If persistent, discuss with your gynecologist.'], flag: false },
+            { type: 'Abnormal — Unusual Color', color: '#ef4444', icon: '🚨', insights: ['Unusual coloration detected that may warrant attention.', 'Could indicate infection or hormonal imbalance.', 'Please monitor and track any other symptoms.'], flag: true },
+          ];
+          setResult(results[Math.floor(Math.random() * 3)]);
+          setAnalyzing(false);
+        }, 2500);
+      };
+
+      return (
+        <div className="space-y-6 animate-fade-in max-w-2xl mx-auto">
+          <div>
+            <h2 className="font-display text-xl font-bold text-plum">Pad Scan Simulator</h2>
+            <p className="text-xs text-plum/50 mt-1">Upload an image for simulated flow analysis</p>
+          </div>
+
+          <div className="glass rounded-2xl p-6">
+            {!image ? (
+              <label className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-rose/20 rounded-2xl cursor-pointer hover:border-rose/40 hover:bg-blush/20 transition-all">
+                <span className="text-4xl mb-3">📷</span>
+                <p className="text-sm font-semibold text-plum/60">Click to upload image</p>
+                <p className="text-xs text-plum/40 mt-1">Accepts all image formats</p>
+                <input type="file" accept="image/*" onChange={handleUpload} className="hidden" />
+              </label>
+            ) : (
+              <div className="space-y-4">
+                <div className="relative rounded-xl overflow-hidden">
+                  <img src={image} alt="Uploaded" className="w-full max-h-64 object-cover rounded-xl" />
+                  <button onClick={() => { setImage(null); setResult(null); }} className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 text-white text-sm flex items-center justify-center hover:bg-black/70 transition-all">✕</button>
+                </div>
+                {!result && !analyzing && (
+                  <button onClick={analyze} className="w-full py-3 rounded-xl text-white text-sm font-semibold transition-all hover:shadow-lg" style={{ background: 'linear-gradient(135deg, #e8607a, #c084fc)' }}>
+                    🔬 Analyze Image
+                  </button>
+                )}
+              </div>
+            )}
+
+            {analyzing && (
+              <div className="text-center py-8 animate-fade-in">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full border-4 border-rose/20 border-t-rose animate-spin-slow"></div>
+                <p className="text-sm font-semibold text-plum animate-shimmer">Analyzing image...</p>
+                <p className="text-xs text-plum/40 mt-1">Processing color patterns and flow indicators</p>
+              </div>
+            )}
+
+            {result && (
+              <div className="animate-fade-in mt-4">
+                <div className="flex items-center gap-3 mb-4 p-4 rounded-xl" style={{ backgroundColor: result.color + '10' }}>
+                  <span className="text-2xl">{result.icon}</span>
+                  <div>
+                    <p className="text-sm font-semibold" style={{ color: result.color }}>{result.type}</p>
+                    <p className="text-xs text-plum/50">Simulated analysis result</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {result.insights.map((ins, i) => (
+                    <div key={i} className="flex items-start gap-2 p-3 rounded-xl bg-blush/30">
+                      <span className="text-xs mt-0.5">💡</span>
+                      <p className="text-sm text-plum/70">{ins}</p>
+                    </div>
+                  ))}
+                </div>
+                {result.flag && (
+                  <div className="mt-4 p-4 rounded-xl bg-red-50 border border-red-200">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">🏥</span>
+                      <p className="text-sm font-semibold text-red-600">We recommend consulting a healthcare professional</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="glass rounded-2xl p-4">
+            <p className="text-xs text-plum/40 text-center">⚠️ This is a simulation tool for educational purposes only. It does not provide real medical analysis. Always consult a healthcare professional for medical concerns.</p>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── AI CHAT ──────────────────────────────────────────
+    function AIChat() {
+      const { chat, setChat, user } = useApp();
+      const [input, setInput] = useState('');
+      const [loading, setLoading] = useState(false);
+      const chatEnd = useRef(null);
+
+      const SYSTEM_PROMPT = `You are VitalSync AI, a compassionate menstrual health assistant. Answer questions about periods, PCOS, hormones, fertility, and wellness. Be warm, non-judgmental, and evidence-based. Never replace a doctor. The user's name is ${user.name}. Keep responses concise but helpful.`;
+
+      const suggestedPrompts = [
+        "Why is my period late?",
+        "Am I at risk of PCOS?",
+        "What should I eat during my period?",
+        "How to manage period cramps?",
+        "Is irregular period normal?",
+      ];
+
+      useEffect(() => {
+        chatEnd.current?.scrollIntoView({ behavior: 'smooth' });
+      }, [chat, loading]);
+
+      const sendMessage = async (text) => {
+        if (!text.trim()) return;
+        const userMsg = { role: 'user', content: text.trim(), time: new Date().toISOString() };
+        const newChat = [...chat, userMsg];
+        setChat(newChat);
+        setInput('');
+        setLoading(true);
+
+        try {
+          const result = await api.request('/api/chat', {
+            method: 'POST',
+            body: JSON.stringify({ message: text.trim() }),
+          });
+          setChat(result.data.chat || newChat);
+        } catch (err) {
+          // Fallback response
+          const fallbackResponses = {
+            'late': "Period delays can happen due to stress, diet changes, hormonal fluctuations, or changes in exercise routine. If your period is more than 7 days late and you're sexually active, consider taking a pregnancy test. If delays happen frequently, it's worth discussing with your gynecologist. 💜",
+            'pcos': "PCOS risk factors include irregular periods, weight gain, acne, and excess hair growth. I recommend taking our PCOD Risk Assessment in the app for a preliminary evaluation. Remember, only a doctor can diagnose PCOS through blood tests and ultrasound. 🩺",
+            'eat': "During your period, focus on iron-rich foods (spinach, lentils), anti-inflammatory options (berries, turmeric, ginger tea), and magnesium-rich foods (dark chocolate, bananas). Stay hydrated and avoid excessive caffeine and salty foods. 🥗",
+            'cramp': "For period cramps, try: 1) Heat therapy (heating pad on lower abdomen), 2) Gentle yoga or stretching, 3) Ginger or chamomile tea, 4) Magnesium-rich foods, 5) Over-the-counter pain relief if needed. If cramps are severe, please see a doctor. 💛",
+            'default': "That's a great question! While I can provide general wellness guidance, I'd recommend discussing specific health concerns with your healthcare provider for personalized advice. Is there anything specific about menstrual health I can help with? 🌸"
+          };
+          const key = Object.keys(fallbackResponses).find(k => text.toLowerCase().includes(k)) || 'default';
+          const assistantMsg = { role: 'assistant', content: fallbackResponses[key], time: new Date().toISOString() };
+          const updatedChat = [...newChat, assistantMsg];
+          setChat(updatedChat);
+        }
+        setLoading(false);
+      };
+
+      return (
+        <div className="flex flex-col h-[calc(100vh-5rem)] animate-fade-in">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="font-display text-xl font-bold text-plum">AI Health Assistant</h2>
+              <p className="text-xs text-plum/50 mt-0.5">Secure server-side AI guidance with local fallback</p>
+            </div>
+          </div>
+
+          {/* Messages */}
+          <div className="flex-1 glass rounded-2xl p-4 overflow-y-auto scrollbar-thin mb-4">
+            {chat.length === 0 && (
+              <div className="h-full flex flex-col items-center justify-center text-center">
+                <span className="text-4xl mb-3">🤖</span>
+                <h3 className="font-display font-semibold text-plum mb-1">Hi {user.name?.split(' ')[0]}!</h3>
+                <p className="text-sm text-plum/50 mb-6 max-w-xs">I'm here to answer your questions about menstrual health. Try asking:</p>
+                <div className="flex flex-wrap gap-2 justify-center max-w-md">
+                  {suggestedPrompts.map((p, i) => (
+                    <button key={i} onClick={() => sendMessage(p)} className="px-3 py-2 rounded-xl bg-blush/50 text-xs font-medium text-plum/70 hover:bg-blush hover:text-plum transition-all">
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {chat.map((msg, i) => (
+              <div key={i} className={`flex mb-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[75%] p-3 rounded-2xl text-sm leading-relaxed ${msg.role === 'user' ? 'bg-gradient-to-r from-rose to-lavender text-white rounded-tr-sm' : 'glass-strong text-plum rounded-tl-sm'}`}>
+                  {msg.content}
+                </div>
+              </div>
+            ))}
+            {loading && (
+              <div className="flex justify-start mb-3">
+                <div className="glass-strong p-4 rounded-2xl rounded-tl-sm">
+                  <div className="dot-typing flex gap-1">
+                    <span className="w-2 h-2 rounded-full bg-rose"></span>
+                    <span className="w-2 h-2 rounded-full bg-rose"></span>
+                    <span className="w-2 h-2 rounded-full bg-rose"></span>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={chatEnd}></div>
+          </div>
+
+          {/* Input */}
+          <div className="glass rounded-2xl p-3 flex items-center gap-3">
+            <input
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && sendMessage(input)}
+              placeholder="Ask about periods, PCOS, wellness..."
+              className="flex-1 bg-transparent text-sm text-plum placeholder:text-plum/30 outline-none"
+            />
+            <button onClick={() => sendMessage(input)} disabled={loading || !input.trim()} className="w-10 h-10 rounded-xl flex items-center justify-center text-white transition-all hover:shadow-lg disabled:opacity-50" style={{ background: 'linear-gradient(135deg, #e8607a, #c084fc)' }}>
+              ➤
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── INSIGHTS ─────────────────────────────────────────
+    function Insights() {
+      const { periods, diary, cycleLength } = useApp();
+      const cycleLenChart = useRef(null);
+      const symptomChart = useRef(null);
+      const moodChart = useRef(null);
+      const flowChart = useRef(null);
+      const charts = useRef([]);
+
+      useEffect(() => {
+        // Destroy existing charts
+        charts.current.forEach(c => c?.destroy());
+        charts.current = [];
+
+        // 1. Cycle Length Trend
+        const sortedPeriods = [...periods].sort((a, b) => new Date(a.date) - new Date(b.date));
+        const cycleLens = [];
+        for (let i = 1; i < sortedPeriods.length; i++) {
+          const diff = daysBetween(sortedPeriods[i - 1].date, sortedPeriods[i].date);
+          if (diff > 15 && diff < 60) cycleLens.push({ len: diff, date: sortedPeriods[i].date });
+        }
+        const last6 = cycleLens.slice(-6);
+
+        if (cycleLenChart.current) {
+          const ctx1 = cycleLenChart.current.getContext('2d');
+          charts.current.push(new Chart(ctx1, {
+            type: 'line',
+            data: {
+              labels: last6.length > 0 ? last6.map(c => fmtShort(c.date)) : ['Cycle 1', 'Cycle 2', 'Cycle 3', 'Cycle 4', 'Cycle 5', 'Cycle 6'],
+              datasets: [{
+                label: 'Cycle Length (days)',
+                data: last6.length > 0 ? last6.map(c => c.len) : [28, 30, 27, 29, 28, 31],
+                borderColor: '#e8607a',
+                backgroundColor: 'rgba(232,96,122,0.1)',
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#e8607a',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+              }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: false, grid: { color: 'rgba(232,96,122,0.05)' } }, x: { grid: { display: false } } } }
+          }));
+        }
+
+        // 2. Symptom Frequency
+        const symptomCounts = {};
+        diary.forEach(d => { (d.symptoms || []).forEach(s => { symptomCounts[s] = (symptomCounts[s] || 0) + 1; }); });
+        const topSymptoms = Object.entries(symptomCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+        if (symptomChart.current) {
+          const ctx2 = symptomChart.current.getContext('2d');
+          charts.current.push(new Chart(ctx2, {
+            type: 'bar',
+            data: {
+              labels: topSymptoms.length > 0 ? topSymptoms.map(s => s[0]) : SYMPTOMS_LIST.slice(0, 8),
+              datasets: [{
+                label: 'Frequency',
+                data: topSymptoms.length > 0 ? topSymptoms.map(s => s[1]) : [8, 6, 5, 4, 7, 3, 2, 5],
+                backgroundColor: ['#e8607a', '#c084fc', '#f1899b', '#d4a5fd', '#f8c8d4', '#a855f7', '#fce4ea', '#c94a62'],
+                borderRadius: 8,
+              }]
+            },
+            options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(232,96,122,0.05)' } }, y: { grid: { display: false } } } }
+          }));
+        }
+
+        // 3. Mood Distribution
+        const moodCounts = [0, 0, 0, 0, 0];
+        diary.forEach(d => { if (d.mood !== null && d.mood !== undefined) moodCounts[d.mood]++; });
+        const hasMoodData = moodCounts.some(c => c > 0);
+
+        if (moodChart.current) {
+          const ctx3 = moodChart.current.getContext('2d');
+          charts.current.push(new Chart(ctx3, {
+            type: 'doughnut',
+            data: {
+              labels: MOODS.map(m => m.label),
+              datasets: [{
+                data: hasMoodData ? moodCounts : [5, 8, 2, 3, 2],
+                backgroundColor: ['#4ade80', '#94a3b8', '#60a5fa', '#ef4444', '#f59e0b'],
+                borderWidth: 0,
+                cutout: '65%',
+              }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 15, font: { size: 11 } } } } }
+          }));
+        }
+
+        // 4. Flow Intensity
+        const flowByDay = {};
+        periods.forEach(p => {
+          const flowVal = p.flow === 'heavy' ? 3 : p.flow === 'medium' ? 2 : p.flow === 'spotting' ? 0.5 : 1;
+          const dayNum = daysBetween(sortedPeriods[0]?.date || p.date, p.date) % cycleLength + 1;
+          flowByDay[dayNum] = flowVal;
+        });
+
+        if (flowChart.current) {
+          const ctx4 = flowChart.current.getContext('2d');
+          const labels = periods.length > 0 ? Object.keys(flowByDay).slice(0, 10).map(d => `Day ${d}`) : ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'];
+          const data = periods.length > 0 ? Object.values(flowByDay).slice(0, 10) : [2, 3, 3, 2, 1];
+          charts.current.push(new Chart(ctx4, {
+            type: 'bar',
+            data: {
+              labels,
+              datasets: [{
+                label: 'Flow',
+                data,
+                backgroundColor: data.map(v => v >= 3 ? '#e8607a' : v >= 2 ? '#f1899b' : '#fce4ea'),
+                borderRadius: 8,
+              }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 4, ticks: { callback: v => ['', 'Light', 'Medium', 'Heavy', ''][v] || '' }, grid: { color: 'rgba(232,96,122,0.05)' } }, x: { grid: { display: false } } } }
+          }));
+        }
+
+        return () => { charts.current.forEach(c => c?.destroy()); };
+      }, [periods, diary]);
+
+      return (
+        <div className="space-y-6 animate-fade-in">
+          <h2 className="font-display text-xl font-bold text-plum">Health Insights</h2>
+
+          {/* Summary Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="glass rounded-xl p-4 text-center"><p className="text-xl font-bold text-rose">{periods.length}</p><p className="text-[10px] text-plum/50">Total Logs</p></div>
+            <div className="glass rounded-xl p-4 text-center"><p className="text-xl font-bold text-lavender">{diary.length}</p><p className="text-[10px] text-plum/50">Diary Entries</p></div>
+            <div className="glass rounded-xl p-4 text-center"><p className="text-xl font-bold text-plum">{cycleLength}</p><p className="text-[10px] text-plum/50">Avg Cycle</p></div>
+            <div className="glass rounded-xl p-4 text-center"><p className="text-xl font-bold text-green-500">Active</p><p className="text-[10px] text-plum/50">Tracking</p></div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="glass rounded-2xl p-5">
+              <h3 className="text-xs font-semibold text-plum/60 uppercase tracking-wider mb-3">Cycle Length Trend</h3>
+              <canvas ref={cycleLenChart}></canvas>
+            </div>
+            <div className="glass rounded-2xl p-5">
+              <h3 className="text-xs font-semibold text-plum/60 uppercase tracking-wider mb-3">Symptom Frequency</h3>
+              <canvas ref={symptomChart}></canvas>
+            </div>
+            <div className="glass rounded-2xl p-5">
+              <h3 className="text-xs font-semibold text-plum/60 uppercase tracking-wider mb-3">Mood Distribution</h3>
+              <canvas ref={moodChart}></canvas>
+            </div>
+            <div className="glass rounded-2xl p-5">
+              <h3 className="text-xs font-semibold text-plum/60 uppercase tracking-wider mb-3">Flow Intensity</h3>
+              <canvas ref={flowChart}></canvas>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── DIET & LIFESTYLE ─────────────────────────────────
+    function DietLifestyle() {
+      const { cyclePhase, pcodResult } = useApp();
+      const riskScore = pcodResult ? calcPCODRisk(pcodResult.answers) : 0;
+      const isHighRisk = riskScore >= 60;
+
+      const phaseData = {
+        Menstrual: {
+          meals: [
+            { icon: '🥣', name: 'Breakfast', desc: 'Warm oatmeal with berries, flaxseeds & honey' },
+            { icon: '🥗', name: 'Lunch', desc: 'Spinach salad with chickpeas, quinoa & lemon dressing' },
+            { icon: '🍲', name: 'Dinner', desc: 'Lentil soup with whole grain bread & steamed broccoli' },
+            { icon: '🍌', name: 'Snack 1', desc: 'Banana with almond butter' },
+            { icon: '🍫', name: 'Snack 2', desc: 'Dark chocolate (70%+) with walnuts' },
+          ],
+          exercise: { type: 'Gentle Yoga & Stretching', duration: '20-30 min', desc: 'Focus on restorative poses. Avoid intense workouts.' },
+          sleep: 'Aim for 8-9 hours. Use a heating pad for comfort. Try chamomile tea before bed.',
+          supplement: 'Iron + Vitamin C to support blood replenishment. Magnesium for cramp relief.',
+          avoid: ['Caffeine', 'Alcohol', 'Salty foods', 'Fried food', 'Cold beverages'],
+          hydration: '2.5-3 liters — warm water and herbal teas preferred',
+        },
+        Follicular: {
+          meals: [
+            { icon: '🥑', name: 'Breakfast', desc: 'Avocado toast on sourdough with poached eggs' },
+            { icon: '🥙', name: 'Lunch', desc: 'Grilled chicken wrap with hummus & fresh vegetables' },
+            { icon: '🐟', name: 'Dinner', desc: 'Baked salmon with sweet potato & asparagus' },
+            { icon: '🥜', name: 'Snack 1', desc: 'Mixed nuts & dried fruits trail mix' },
+            { icon: '🥤', name: 'Snack 2', desc: 'Green smoothie with spinach, apple & ginger' },
+          ],
+          exercise: { type: 'Cardio & Strength Training', duration: '45-60 min', desc: 'Energy is rising — great time for challenging workouts!' },
+          sleep: 'Aim for 7-8 hours. Consistent sleep/wake schedule is key.',
+          supplement: 'Probiotics for gut health. B-complex vitamins for energy.',
+          avoid: ['Excess sugar', 'Processed snacks', 'Heavy dairy', 'White bread'],
+          hydration: '2.5 liters — add lemon or cucumber for flavor',
+        },
+        Ovulation: {
+          meals: [
+            { icon: '🥝', name: 'Breakfast', desc: 'Greek yogurt parfait with kiwi, granola & chia seeds' },
+            { icon: '🥗', name: 'Lunch', desc: 'Mediterranean bowl with falafel, tabbouleh & tzatziki' },
+            { icon: '🍳', name: 'Dinner', desc: 'Stir-fried tofu with brown rice & colorful vegetables' },
+            { icon: '🫐', name: 'Snack 1', desc: 'Mixed berry bowl with mint' },
+            { icon: '🥒', name: 'Snack 2', desc: 'Cucumber & carrot sticks with hummus' },
+          ],
+          exercise: { type: 'HIIT & Group Sports', duration: '45-60 min', desc: 'Peak energy! Push yourself with high-intensity workouts.' },
+          sleep: 'Aim for 7-8 hours. Body temp may be higher — keep room cool.',
+          supplement: 'Zinc for hormone support. Vitamin E for fertility health.',
+          avoid: ['Trans fats', 'Excessive caffeine', 'Artificial sweeteners', 'Alcohol'],
+          hydration: '3 liters — especially important as body temp rises',
+        },
+        Luteal: {
+          meals: [
+            { icon: '🍠', name: 'Breakfast', desc: 'Sweet potato pancakes with cinnamon & maple syrup' },
+            { icon: '🍛', name: 'Lunch', desc: 'Brown rice bowl with roasted chickpeas & tahini' },
+            { icon: '🥘', name: 'Dinner', desc: 'Turkey meatballs with whole wheat pasta & marinara' },
+            { icon: '🍿', name: 'Snack 1', desc: 'Air-popped popcorn with nutritional yeast' },
+            { icon: '🥛', name: 'Snack 2', desc: 'Warm turmeric golden milk' },
+          ],
+          exercise: { type: 'Pilates & Moderate Cardio', duration: '30-45 min', desc: 'Energy decreasing — focus on steady, moderate movement.' },
+          sleep: 'Aim for 8+ hours. Melatonin naturally dips — limit screen time.',
+          supplement: 'Magnesium for PMS relief. Vitamin B6 for mood support.',
+          avoid: ['Refined sugar', 'Excess salt', 'Caffeine after 2pm', 'Spicy food', 'Alcohol'],
+          hydration: '2.5 liters — herbal teas like peppermint and ginger help',
+        },
+      };
+
+      const data = phaseData[cyclePhase.name] || phaseData.Follicular;
+
+      return (
+        <div className="space-y-6 animate-fade-in">
+          <div>
+            <h2 className="font-display text-xl font-bold text-plum">Diet & Lifestyle</h2>
+            <p className="text-xs text-plum/50 mt-1">Personalized for your <span className="font-semibold" style={{ color: cyclePhase.color }}>{cyclePhase.name}</span> phase {isHighRisk ? '& PCOD risk level' : ''}</p>
+          </div>
+
+          {/* Phase-specific meal plan */}
+          <div className="glass rounded-2xl p-5">
+            <h3 className="text-xs font-semibold text-plum/60 uppercase tracking-wider mb-4">🍽️ Today's Meal Plan</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {data.meals.map((m, i) => (
+                <div key={i} className="p-4 rounded-xl bg-blush/30 hover:bg-blush/50 transition-all">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xl">{m.icon}</span>
+                    <span className="text-xs font-semibold text-plum/60">{m.name}</span>
+                  </div>
+                  <p className="text-sm text-plum/70">{m.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Exercise */}
+            <div className="glass rounded-2xl p-5">
+              <h3 className="text-xs font-semibold text-plum/60 uppercase tracking-wider mb-3">🏃‍♀️ Exercise</h3>
+              <p className="text-sm font-semibold text-plum">{data.exercise.type}</p>
+              <p className="text-xs text-rose font-medium mt-1">⏱ {data.exercise.duration}</p>
+              <p className="text-xs text-plum/60 mt-2">{data.exercise.desc}</p>
+            </div>
+
+            {/* Sleep */}
+            <div className="glass rounded-2xl p-5">
+              <h3 className="text-xs font-semibold text-plum/60 uppercase tracking-wider mb-3">😴 Sleep Tip</h3>
+              <p className="text-sm text-plum/70 leading-relaxed">{data.sleep}</p>
+            </div>
+
+            {/* Supplement */}
+            <div className="glass rounded-2xl p-5">
+              <h3 className="text-xs font-semibold text-plum/60 uppercase tracking-wider mb-3">💊 Supplements</h3>
+              <p className="text-sm text-plum/70 leading-relaxed">{data.supplement}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Foods to Avoid */}
+            <div className="glass rounded-2xl p-5">
+              <h3 className="text-xs font-semibold text-plum/60 uppercase tracking-wider mb-3">🚫 Foods to Avoid</h3>
+              <div className="flex flex-wrap gap-2">
+                {data.avoid.map((f, i) => (
+                  <span key={i} className="px-3 py-1.5 rounded-full text-xs font-medium bg-red-50 text-red-600 border border-red-200">{f}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* Hydration */}
+            <div className="glass rounded-2xl p-5">
+              <h3 className="text-xs font-semibold text-plum/60 uppercase tracking-wider mb-3">💧 Hydration Goal</h3>
+              <p className="text-lg font-bold text-blue-500 mb-1">💧</p>
+              <p className="text-sm text-plum/70">{data.hydration}</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── NOTIFICATIONS ────────────────────────────────────
+    function NotificationsPage({ notifications }) {
+      const colorMap = { yellow: 'bg-amber-50 border-amber-200 text-amber-700', red: 'bg-red-50 border-red-200 text-red-700', orange: 'bg-orange-50 border-orange-200 text-orange-700', blue: 'bg-blue-50 border-blue-200 text-blue-700', purple: 'bg-purple-50 border-purple-200 text-purple-700' };
+
+      return (
+        <div className="space-y-6 animate-fade-in">
+          <h2 className="font-display text-xl font-bold text-plum">Notifications</h2>
+          {notifications.length === 0 ? (
+            <div className="glass rounded-2xl p-12 text-center">
+              <span className="text-4xl">🔔</span>
+              <p className="text-sm text-plum/50 mt-3">No notifications at this time</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {notifications.map((n, i) => (
+                <div key={i} className={`glass rounded-xl p-4 border ${colorMap[n.color] || 'border-rose/10'} animate-fade-in`} style={{ animationDelay: `${i * 50}ms` }}>
+                  <div className="flex items-start gap-3">
+                    <span className="text-xl">{n.icon}</span>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold">{n.title}</p>
+                      <p className="text-xs opacity-70 mt-0.5">{n.message}</p>
+                    </div>
+                    <span className="text-[10px] opacity-40">{n.time || 'Just now'}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ─── SETTINGS ─────────────────────────────────────────
+    function Settings({ user, setUser, onLogout, darkMode, setDarkMode }) {
+      const [form, setForm] = useState({ name: user.name, age: user.age, weight: user.weight, cycleLength: user.cycleLength, email: user.email });
+      const [showClear, setShowClear] = useState(false);
+      const [saved, setSaved] = useState(false);
+
+      const handleSave = async () => {
+        const updated = { ...user, ...form, age: Number(form.age), weight: Number(form.weight), cycleLength: Number(form.cycleLength) };
+        setUser(updated);
+        try {
+          const result = await api.request('/api/me', {
+            method: 'PUT',
+            body: JSON.stringify(updated),
+          });
+          setUser(result.data.user);
+        } catch (err) {
+          console.error(err);
+        }
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      };
+
+      const exportData = async () => {
+        const data = await api.request('/api/export');
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `vitalsync_export_${today()}.json`; a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      const clearAll = async () => {
+        try {
+          await api.request('/api/me/data', { method: 'DELETE' });
+        } catch (err) {
+          console.error(err);
+        }
+        onLogout();
+      };
+
+      const inputClass = "w-full px-4 py-3 rounded-xl bg-blush/30 border border-rose/10 text-sm text-plum";
+
+      return (
+        <div className="space-y-6 animate-fade-in max-w-2xl">
+          <h2 className="font-display text-xl font-bold text-plum">Settings</h2>
+
+          {/* Profile */}
+          <div className="glass rounded-2xl p-5">
+            <h3 className="text-xs font-semibold text-plum/60 uppercase tracking-wider mb-4">Edit Profile</h3>
+            <div className="space-y-3">
+              <input className={inputClass} placeholder="Name" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+              <div className="grid grid-cols-2 gap-3">
+                <input className={inputClass} placeholder="Age" type="number" value={form.age} onChange={e => setForm({...form, age: e.target.value})} />
+                <input className={inputClass} placeholder="Weight (kg)" type="number" value={form.weight} onChange={e => setForm({...form, weight: e.target.value})} />
+              </div>
+              <input className={inputClass} placeholder="Cycle Length (days)" type="number" value={form.cycleLength} onChange={e => setForm({...form, cycleLength: e.target.value})} />
+              <button onClick={handleSave} className="px-6 py-3 rounded-xl text-white text-sm font-semibold transition-all hover:shadow-lg" style={{ background: 'linear-gradient(135deg, #e8607a, #c084fc)' }}>
+                {saved ? '✓ Saved' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+
+          {/* Dark Mode (visual toggle only in this context) */}
+          <div className="glass rounded-2xl p-5">
+            <h3 className="text-xs font-semibold text-plum/60 uppercase tracking-wider mb-4">Appearance</h3>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-plum">Dark Mode</p>
+                <p className="text-xs text-plum/50">Switch to dark theme</p>
+              </div>
+              <button onClick={() => setDarkMode(!darkMode)} className={`w-12 h-6 rounded-full transition-all duration-300 ${darkMode ? 'bg-rose' : 'bg-gray-200'}`}>
+                <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-300 ${darkMode ? 'translate-x-6' : 'translate-x-0.5'}`}></div>
+              </button>
+            </div>
+          </div>
+
+          {/* Export / Clear */}
+          <div className="glass rounded-2xl p-5">
+            <h3 className="text-xs font-semibold text-plum/60 uppercase tracking-wider mb-4">Data Management</h3>
+            <div className="space-y-3">
+              <button onClick={exportData} className="w-full flex items-center gap-3 p-3 rounded-xl bg-blush/30 hover:bg-blush/50 transition-all text-left">
+                <span className="text-lg">📤</span>
+                <div>
+                  <p className="text-sm font-medium text-plum">Export Data as JSON</p>
+                  <p className="text-xs text-plum/50">Download all your VitalSync data</p>
+                </div>
+              </button>
+              <button onClick={() => setShowClear(true)} className="w-full flex items-center gap-3 p-3 rounded-xl bg-red-50 hover:bg-red-100 transition-all text-left border border-red-200">
+                <span className="text-lg">🗑️</span>
+                <div>
+                  <p className="text-sm font-medium text-red-600">Clear All Data</p>
+                  <p className="text-xs text-red-400">This action cannot be undone</p>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Clear Confirmation Modal */}
+          {showClear && (
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setShowClear(false)}>
+              <div className="glass-strong rounded-2xl p-6 max-w-sm w-full mx-4 animate-fade-in" onClick={e => e.stopPropagation()}>
+                <h3 className="font-display font-semibold text-plum mb-2">Clear All Data?</h3>
+                <p className="text-sm text-plum/60 mb-5">This will permanently delete all your data including period logs, diary entries, and chat history.</p>
+                <div className="flex gap-3">
+                  <button onClick={() => setShowClear(false)} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-plum/60 bg-blush hover:bg-blush-dark transition-all">Cancel</button>
+                  <button onClick={clearAll} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition-all">Delete Everything</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ─── MAIN APP ─────────────────────────────────────────
+    function App() {
+      const [user, setUser] = useState(null);
+      const [page, setPage] = useState('dashboard');
+      const [periods, setPeriods] = useState([]);
+      const [diary, setDiary] = useState([]);
+      const [pcodResult, setPcodResult] = useState(null);
+      const [chat, setChat] = useState([]);
+      const [darkMode, setDarkMode] = useState(() => localStorage.getItem('vitalsync_dark_mode') === 'true');
+
+      useEffect(() => {
+        document.body.classList.toggle('dark-theme', darkMode);
+        localStorage.setItem('vitalsync_dark_mode', String(darkMode));
+      }, [darkMode]);
+
+      // Check session
+      useEffect(() => {
+        api.clearLegacyAuth();
+        api.request('/api/me')
+          .then(result => api.applyData(result.data, { setUser, setPeriods, setDiary, setPcodResult, setChat }))
+          .catch(() => {});
+      }, []);
+
+      const handleAuth = (data) => {
+        api.applyData(data, { setUser, setPeriods, setDiary, setPcodResult, setChat });
+      };
+
+      const handleLogout = async () => {
+        try {
+          await api.request('/api/auth/logout', { method: 'POST' });
+        } catch (err) {
+          console.error(err);
+        }
+        setUser(null);
+        setPeriods([]);
+        setDiary([]);
+        setPcodResult(null);
+        setChat([]);
+        setPage('dashboard');
+      };
+
+      if (!user) return <AuthScreen onAuth={handleAuth} darkMode={darkMode} />;
+
+      // Compute derived state
+      const lastPeriodDate = user.lastPeriod || today();
+      const cycleLength = user.cycleLength || 28;
+
+      // Compute from logged periods
+      const sortedPeriods = [...periods].sort((a, b) => new Date(a.date) - new Date(b.date));
+      const actualLastPeriod = sortedPeriods.length > 0 ? sortedPeriods[sortedPeriods.length - 1].date : lastPeriodDate;
+
+      const cycleHistory = [];
+      for (let i = 1; i < sortedPeriods.length; i++) {
+        const diff = daysBetween(sortedPeriods[i - 1].date, sortedPeriods[i].date);
+        if (diff > 15 && diff < 60) cycleHistory.push(diff);
+      }
+
+      const effectiveCycleLength = cycleHistory.length > 0
+        ? Math.round(cycleHistory.reduce((a, b) => a + b, 0) / cycleHistory.length)
+        : cycleLength;
+
+      const cycleDay = Math.max(1, daysBetween(actualLastPeriod, today()) + 1);
+      const cyclePhase = getCyclePhase(cycleDay, effectiveCycleLength);
+      const nextPeriod = predictNextPeriod(actualLastPeriod, cycleHistory.length > 0 ? cycleHistory : [cycleLength]);
+      const daysUntilPeriod = daysBetween(today(), nextPeriod);
+
+      // Generate notifications
+      const notifications = [];
+      if (daysUntilPeriod > 0 && daysUntilPeriod <= 3) {
+        notifications.push({ icon: '📅', title: 'Period Coming Soon', message: `Your period is expected in ${daysUntilPeriod} day${daysUntilPeriod !== 1 ? 's' : ''}.`, color: 'yellow', read: false });
+      }
+      if (daysUntilPeriod < 0) {
+        notifications.push({ icon: '🚨', title: 'Period is Late', message: `Your period is ${Math.abs(daysUntilPeriod)} day${Math.abs(daysUntilPeriod) !== 1 ? 's' : ''} late.`, color: 'red', read: false });
+      }
+      if (pcodResult && calcPCODRisk(pcodResult.answers) >= 60) {
+        notifications.push({ icon: '⚠️', title: 'High PCOD Risk', message: 'Your assessment indicates high risk. Review recommendations.', color: 'orange', read: false });
+      }
+      if (!diary.find(d => d.date === today())) {
+        notifications.push({ icon: '📝', title: 'Daily Log Reminder', message: "You haven't logged your symptoms today.", color: 'blue', read: false });
+      }
+      const ovDay = Math.round(effectiveCycleLength * 0.5);
+      if (cycleDay >= ovDay - 3 && cycleDay <= ovDay - 1) {
+        notifications.push({ icon: '✨', title: 'Ovulation Window', message: 'Your ovulation window is approaching.', color: 'purple', read: false });
+      }
+
+      const pageTitles = { dashboard: 'Dashboard', tracker: 'Period Tracker', pcod: 'PCOD Check', diary: 'Daily Diary', padscan: 'Pad Scan', chat: 'AI Chat', insights: 'Insights', diet: 'Diet & Lifestyle', notifications: 'Notifications', settings: 'Settings' };
+
+      const contextValue = {
+        user, setUser,
+        periods, setPeriods,
+        diary, setDiary,
+        pcodResult, setPcodResult,
+        chat, setChat,
+        darkMode, setDarkMode,
+        cycleLength: effectiveCycleLength,
+        lastPeriodDate: actualLastPeriod,
+        cycleDay, cyclePhase,
+        nextPeriod, daysUntilPeriod,
+      };
+
+      return (
+        <AppContext.Provider value={contextValue}>
+          <div className="flex min-h-screen app-shell">
+            <Sidebar currentPage={page} setPage={setPage} user={user} onLogout={handleLogout} />
+            <div className="flex-1 ml-60">
+              <TopBar title={pageTitles[page]} notifications={notifications} setPage={setPage} />
+              <main className="p-6 max-w-6xl">
+                {page === 'dashboard' && <Dashboard user={user} setPage={setPage} />}
+                {page === 'tracker' && <PeriodTracker />}
+                {page === 'pcod' && <PCODCheck />}
+                {page === 'diary' && <DailyDiary />}
+                {page === 'padscan' && <PadScan />}
+                {page === 'chat' && <AIChat />}
+                {page === 'insights' && <Insights />}
+                {page === 'diet' && <DietLifestyle />}
+                {page === 'notifications' && <NotificationsPage notifications={notifications} />}
+                {page === 'settings' && <Settings user={user} setUser={(u) => { setUser(u); }} onLogout={handleLogout} darkMode={darkMode} setDarkMode={setDarkMode} />}
+              </main>
+            </div>
+          </div>
+        </AppContext.Provider>
+      );
+    }
+
+    // ─── RENDER ────────────────────────────────────────────
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
