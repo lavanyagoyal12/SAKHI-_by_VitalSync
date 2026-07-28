@@ -1,109 +1,262 @@
-# VitalSync-> SAKHI
+# 🌸 SAKHI
+### AI-Powered Menstrual Health Platform for Smarter Cycle Prediction & Early PCOD Detection
 
-VitalSync is a menstrual health tracking web app with account auth, cycle tracking, diary logging, PCOD risk assessment, export/delete controls, and an AI help assistant with a safe fallback mode.
+> Personalized menstrual health insights powered by Machine Learning to help women understand their cycles, detect early PCOD risk, and make informed health decisions.
 
-## Production setup
+---
 
-This project now supports:
+## 🌐 Live Demo
 
-- `npm start` as the single canonical launch command
-- `httpOnly` cookie-based sessions instead of browser-stored auth tokens
-- MongoDB as the production database
-- JSON file fallback only for local development when `MONGODB_URI` is not set
-- security headers via `helmet`
-- rate limiting on API and auth routes
-- input validation for core health/account flows
-- legal pages at `/privacy` and `/terms`
-- health check endpoint at `/health`
-- graceful shutdown for clean process exits
+🔗 https://sakhi-rbde.onrender.com
 
-## Environment
+---
 
-Create a `.env` file from `.env.example`.
+## 🎥 Demo Video
+https://drive.google.com/drive/folders/1GKiMNx0DAUQlRamQLiZrexxn999jzrIC
 
-Required for production:
+---
 
-- `NODE_ENV=production`
-- `JWT_SECRET`
-- `MONGODB_URI`
-- `APP_BASE_URL`
-- `SUPPORT_EMAIL`
+# 🎯 The Problem
 
-Optional:
+Millions of women experience irregular menstrual cycles but lack intelligent tools that can:
 
-- `PORT`
-- `ANTHROPIC_API_KEY`
-- `PUBLIC_ORIGIN`
+- Track irregular cycle patterns
+- Predict future cycles accurately
+- Detect early signs of PCOD
+- Provide personalized health guidance
 
-Development-only fallback:
+Most existing applications focus only on basic period tracking without meaningful AI-driven insights.
 
-- `DATA_FILE`
+---
 
-## Run locally
+# 💡 Our Solution
+
+SAKHI is an AI-powered menstrual health platform that combines machine learning, personalized health analytics, and intelligent recommendations to provide proactive menstrual healthcare.
+
+The platform continuously learns from user data to improve prediction accuracy while offering personalized wellness guidance.
+
+---
+
+# ✨ Key Features
+
+### 📅 Smart Period Tracker
+
+- Track menstrual cycles
+- Log symptoms and mood
+- Daily health journaling
+
+### 🧠 ML Pattern Analysis
+
+- Learns from historical cycle data
+- Detects irregular menstrual patterns
+- Improves prediction accuracy over time
+
+### 📈 Predictive Cycle Engine
+
+- Predicts upcoming menstrual cycles
+- Handles irregular cycles intelligently
+- More adaptive than calendar-based prediction
+
+### ❤️ PCOD Risk Detection
+
+- Early risk assessment
+- Multiple health parameter analysis
+- Personalized PCOD risk scoring
+
+### 🔔 Smart Reminders
+
+- Medication reminders
+- Cycle phase notifications
+- Health check-up reminders
+
+### 📊 Interactive Dashboard
+
+- Visual health analytics
+- Cycle history
+- Risk overview
+- Personalized insights
+
+---
+
+# 🌟 Premium Features
+
+- 🤖 AI Health Chatbot
+- 📷 FlowScan (Pad Image Analysis)
+- 📖 Daily Health Diary
+- 🌍 Multi-language Support
+- 📊 Hormonal Health Score
+- 🩺 Adaptive PCOD Questionnaire
+
+---
+
+# 🧠 AI & Machine Learning
+
+SAKHI uses Machine Learning to provide intelligent healthcare assistance.
+
+### AI Capabilities
+
+- Cycle Prediction
+- Pattern Recognition
+- Early PCOD Risk Detection
+- Personalized Recommendations
+- Continuous Learning
+
+---
+
+# 🏗 Tech Stack
+
+## Frontend
+
+- React Native
+- Tailwind CSS
+- Chart.js / Recharts
+
+## Backend
+
+- Python FastAPI
+- Node.js
+- REST APIs
+- WebSockets
+
+## AI / ML
+
+- Scikit-learn
+- TensorFlow
+- LSTM
+- Logistic Regression
+
+## Database & Security
+
+- MongoDB
+- Firebase / Supabase
+- JWT Authentication
+- AES-256 Encryption
+
+---
+
+# 🔐 Authentication Workflow
+
+```
+User
+   │
+   ▼
+Sign Up / Login
+   │
+   ▼
+Backend Validation
+   │
+   ▼
+Password Encryption
+   │
+   ▼
+Secure Database Storage
+   │
+   ▼
+Authenticated Session
+```
+
+---
+
+# 📱 Functional Flow
+
+```
+User
+   │
+   ▼
+Dashboard
+   │
+   ├── Period Tracker
+   ├── PCOD Assessment
+   ├── AI Chatbot
+   ├── Daily Diary
+   └── Health Summary
+           │
+           ▼
+      AI Prediction Engine
+           │
+           ▼
+ Personalized Health Insights
+```
+
+---
+
+# 🚀 Getting Started
+
+### Clone Repository
+
+```bash
+git clone https://github.com/yourusername/sakhi.git
+```
+
+### Install Dependencies
 
 ```bash
 npm install
+```
+
+### Configure Environment
+
+Create a `.env` file.
+
+```env
+NODE_ENV=production
+JWT_SECRET=your_secret
+MONGODB_URI=your_database_uri
+APP_BASE_URL=http://localhost:3000
+SUPPORT_EMAIL=example@email.com
+```
+
+### Run
+
+```bash
 npm start
 ```
 
-Open `http://localhost:3000`.
+Open:
 
-To verify the server, run this after starting it:
-
-```bash
-npm run smoke
+```
+http://localhost:3000
 ```
 
-If `MONGODB_URI` is unset, the app uses the local JSON development fallback.
+---
 
-## Deploy
+# 📂 Project Highlights
 
-### Render
+- Secure Authentication
+- AI-powered Cycle Prediction
+- Personalized Health Dashboard
+- Early PCOD Detection
+- Health Diary
+- AI Chatbot
+- Smart Notifications
+- Responsive User Interface
 
-The repo includes `render.yaml`.
+---
 
-Set these environment variables in Render:
+# 🌍 Real-World Impact
 
-- `NODE_ENV=production`
-- `JWT_SECRET`
-- `MONGODB_URI`
-- `APP_BASE_URL`
-- `SUPPORT_EMAIL`
-- `ANTHROPIC_API_KEY` if you want live AI replies
+SAKHI aims to improve women's healthcare by:
 
-### Docker
+- Early PCOD Detection
+- Personalized Healthcare
+- Reduced Anxiety Around Irregular Cycles
+- Better Menstrual Awareness
+- Data-driven Health Decisions
 
-The repo includes `Dockerfile`.
+---
 
-Example:
+# 🚀 Future Scope
 
-```bash
-docker build -t vitalsync .
-docker run -p 3000:3000 \
-  -e NODE_ENV=production \
-  -e JWT_SECRET=replace-me \
-  -e MONGODB_URI=replace-me \
-  -e APP_BASE_URL=https://your-domain.example \
-  -e SUPPORT_EMAIL=support@your-domain.example \
-  vitalsync
-```
+- Wearable Device Integration
+- Doctor Consultation Portal
+- Nutrition Recommendation Engine
+- Fertility Prediction
+- Pregnancy Planning
+- Cloud AI Model Training
+- Health Report Sharing
+- Voice Assistant Support
 
-## Public launch checklist
 
-- Use a real MongoDB deployment, such as MongoDB Atlas.
-- Set a strong `JWT_SECRET`.
-- Put the app behind HTTPS.
-- Replace the support email with your real contact.
-- Review the legal copy and medical disclaimer for your exact launch context.
-- Add uptime monitoring and database backups.
+---
 
-## Current status
 
-This repo is now structured to be deployable publicly.
-
-The main remaining non-code work before a real public launch is operational and legal:
-
-- production MongoDB credentials
-- real support/legal identity details
-- hosting setup
-- backups and monitoring
